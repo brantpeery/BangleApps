@@ -1,0 +1,18 @@
+{
+  "id": "goldenbutterfly",
+  "name": "Golden Butterfly",
+  "shortName": "Golden Butterfly Watchface",
+  "version": "1v00",
+  "description": "Be in the embrace of butterflies 24x7. Golden butterfly background watchface",
+  "icon": "icon.png",
+  "screenshots": [
+    {"url": "black.png"}
+  ],
+  "tags": "clock",
+  "type": "clock",
+  "supports": [
+    "BANGLEJS2"
+  ],
+  "readme": "README.md",
+  "allow_emulator": true
+}
