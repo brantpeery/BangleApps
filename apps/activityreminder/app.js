@@ -1,37 +1,46 @@
-function drawAlert(){
-  E.showPrompt("Inactivity detected",{
-    title:"Activity reminder",
-    buttons : {"Ok": true,"Dismiss": false}
-    }).then(function(v) {
-      if(v == true){
-        stepsArray = stepsArray.slice(0, activityreminder.maxInnactivityMin - 3);
-        require("activityreminder").saveStepsArray(stepsArray);
-      }
-      if(v == false){
-        stepsArray = stepsArray.slice(0, activityreminder.maxInnactivityMin - activityreminder.dismissDelayMin);
-        require("activityreminder").saveStepsArray(stepsArray);
-      }
-    load();
-  });
-  
-  Bangle.buzz(400);
-  setTimeout(load, 20000);
-}
+(function () {
+    // load variable before defining functions cause it can trigger a ReferenceError
+    const activityreminder = require("activityreminder");
+    const storage = require("Storage");
+    const activityreminder_settings = activityreminder.loadSettings();
+    let activityreminder_data = activityreminder.loadData();
 
-function run(){
-    if(stepsArray.length == activityreminder.maxInnactivityMin){
-        if (stepsArray[0] - stepsArray[stepsArray.length-1] < activityreminder.minSteps){
-            drawAlert();
+    function drawAlert() {
+        E.showPrompt("Inactivity detected", {
+            title: "Activity reminder",
+            buttons: { "Ok": 1, "Dismiss": 2, "Pause": 3 }
+        }).then(function (v) {
+            if (v == 1) {
+                activityreminder_data.okDate = new Date();
+            }
+            if (v == 2) {
+                activityreminder_data.dismissDate = new Date();
+            }
+            if (v == 3) {
+                activityreminder_data.pauseDate = new Date();
+            }
+            activityreminder.saveData(activityreminder_data);
+            load();
+        });
+        
+        // Obey system quiet mode:
+        if (!(storage.readJSON('setting.json', 1) || {}).quiet) {
+            Bangle.buzz(400);
         }
-    }else{
-        eval(require("Storage").read("activityreminder.settings.js"))(()=>load());
+        setTimeout(load, 20000);
     }
-}
+    
+    function run() {
+        if (activityreminder.mustAlert(activityreminder_data, activityreminder_settings)) {
+            drawAlert();
+        } else {
+            eval(storage.read("activityreminder.settings.js"))(() => load());
+        }
+    }
 
-
-g.clear();
-Bangle.loadWidgets();
-Bangle.drawWidgets();
-activityreminder = require("activityreminder").loadSettings();
-stepsArray = require("activityreminder").loadStepsArray();
-run();
+    g.clear();
+    Bangle.loadWidgets();
+    Bangle.drawWidgets();
+    run();
+    
+})();
